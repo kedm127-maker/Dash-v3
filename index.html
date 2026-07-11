@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>三產品 週報 Dashboard｜合併版</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F3F5F1; --card:#FFFFFF; --ink:#141D18; --muted:#5F6B64;
+  --line:#DFE5DC; --line-soft:#ECF0EA;
+  --pos:#0C6B54; --pos-bg:#E1F0E8; --pos-dk:#08463A;
+  --neg:#B23A2B; --neg-bg:#F8E7E2;
+  --warn-bg:#F7EDDA; --warn-dk:#6B430A;
+  --slate:#5F6B72; --slate-bg:#ECEFF0;
+  --sans:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --serif:"Noto Serif TC","PingFang TC",serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --radius:14px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 20px 70px}
+.eyebrow{font-size:11px;letter-spacing:.24em;color:var(--muted);margin:0 0 4px;font-weight:500}
+h1{font-family:var(--serif);font-weight:900;font-size:26px;margin:0;letter-spacing:.02em}
+.masthead{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;justify-content:space-between;margin-bottom:12px}
+.masthead .sub{color:var(--muted);font-size:12.5px;margin:5px 0 0}
+.headctl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 12px}
+.pill .dot{width:8px;height:8px;border-radius:50%;background:var(--pos)}
+.pill .dot.bad{background:var(--neg)} .pill .dot.mid{background:#B57414}
+.btn{font:inherit;font-size:13.5px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:7px 14px;cursor:pointer}
+.btn:disabled{opacity:.5;cursor:default}
+button:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--pos);outline-offset:2px}
+
+.connbar{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 14px;margin-bottom:16px;font-size:12.5px;color:var(--muted)}
+.connbar .st{display:inline-flex;align-items:center;gap:6px}
+.cdot{width:8px;height:8px;border-radius:50%;flex:none}
+.cdot.ok{background:var(--pos)} .cdot.off{background:#B57414} .cdot.err{background:var(--neg)}
+.connbar .right{margin-left:auto;font-family:var(--mono);font-size:11.5px}
+
+.prodtabs{display:flex;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px;width:max-content;max-width:100%;overflow-x:auto;margin-bottom:18px}
+.prodtabs button{font:inherit;font-size:14px;color:var(--muted);padding:7px 18px;border-radius:999px;white-space:nowrap;display:inline-flex;align-items:center;gap:7px;border:0;background:transparent;cursor:pointer}
+.prodtabs button i{width:8px;height:8px;border-radius:50%;background:var(--h,#141D18);font-style:normal}
+.prodtabs button.on{background:var(--ink);color:#fff;font-weight:500}
+.prodtabs button.on i{outline:2px solid rgba(255,255,255,.4)}
+
+/* 週尺（定稿：基準線與趨勢線皆在上層） */
+.weekbar{display:flex;gap:18px;align-items:stretch;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 18px;margin-bottom:16px}
+.weekbar .now{flex:0 0 auto;min-width:180px;display:flex;flex-direction:column;justify-content:center;border-right:1px solid var(--line-soft);padding-right:18px}
+.weekbar .wkprod{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px;margin-bottom:2px}
+.weekbar .wklb{font-family:var(--serif);font-weight:900;font-size:21px;line-height:1.3}
+.weekbar .wkrange{font-size:12.5px;color:var(--muted);font-family:var(--mono)}
+.weekbar .wkhint{font-size:11px;color:#9AA59D;margin-top:6px}
+.rulerside{flex:1;min-width:0}
+.newwrap{display:flex;gap:8px;align-items:stretch}
+.axis{flex:0 0 auto;width:34px;position:relative;font-family:var(--mono);font-size:10px;color:#9AA59D}
+.axis span{position:absolute;right:0;transform:translateY(-50%)}
+.rl-grid{position:relative;flex:1;min-width:0;display:grid}
+.rl-svg-top{position:absolute;left:0;top:0;width:100%;height:76px;pointer-events:none;z-index:5}
+.col{position:relative;cursor:pointer;border-radius:8px;border:0;background:transparent;padding:0;font:inherit}
+.col:hover{background:#F2F5F0}
+.col.on{background:#EAF3EE}
+.plot{position:relative;height:76px}
+.wbar{position:absolute;left:22%;right:22%;background:#C6D4CB;border-radius:4px 4px 0 0}
+.wbar.neg{border-radius:0 0 4px 4px;background:#E7B9AE}
+.col.on .wbar{background:var(--pos)}
+.col.on .wbar.neg{background:#E0705C}
+.vchip{position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap;font-family:var(--mono);font-size:10px;font-weight:600;color:var(--pos-dk);background:var(--pos-bg);border-radius:5px;padding:1px 5px;z-index:6;top:-9px}
+.clb{font-size:10.5px;color:var(--muted);text-align:center;margin-top:5px;font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.col.on .clb{color:var(--pos-dk);font-weight:600}
+
+.hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px;margin-bottom:12px}
+.hero .cell{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px 14px;position:relative;overflow:hidden}
+.hero .cell::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--h,#141D18);opacity:.85}
+.hero .lb{font-size:12.5px;color:var(--muted);margin-bottom:2px}
+.hero .lb .unit{font-size:11px;font-family:var(--mono)}
+.hero .v{font-family:var(--mono);font-weight:600;font-size:30px;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.15}
+.hero .v.negval{color:var(--neg)}
+.d{font-size:12.5px;margin-top:5px;font-family:var(--mono)}
+.d.up{color:var(--pos)} .d.down{color:var(--neg)} .d.flat{color:var(--muted)}
+
+.kpis{margin-bottom:22px}
+.kpi-section{margin-bottom:16px}
+.kpi-head{font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;padding:0 0 6px;border-bottom:1.5px solid var(--line);margin-bottom:8px}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px 10px}
+.kpi .lb{font-size:12px;color:var(--muted);margin-bottom:3px;white-space:nowrap}
+.kpi .v{font-family:var(--mono);font-weight:600;font-size:19px;font-variant-numeric:tabular-nums}
+.kpi .v.negval{color:var(--neg)}
+.kpi .d{font-size:11.5px;margin-top:3px}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px 14px;position:relative}
+.card h2{font-size:14.5px;margin:0 0 2px;font-weight:700}
+.card .hint{font-size:12px;color:var(--muted);margin:0 0 10px}
+.chartbox{position:relative;height:300px}
+svg.inlinesvg text{font-family:var(--mono);font-size:11px;fill:var(--muted)}
+
+.chhead{display:flex;align-items:baseline;gap:14px;margin:24px 0 14px;position:relative;padding-top:8px;flex-wrap:wrap}
+.chhead h2{font-family:var(--serif);font-weight:900;font-size:19px;margin:0}
+.chhead .cap{font-size:12.5px;color:var(--muted)}
+.chhead::before{content:"";position:absolute;left:0;right:0;top:0;border-top:2px solid var(--pos);opacity:.35}
+
+.tablecard{padding:4px 0 8px;margin-bottom:14px}
+.tablecard h2,.tablecard .hint{padding:12px 18px 0}
+.tablecard .hint{padding-top:2px}
+.tbl-scroll{overflow-x:auto}
+table.data{width:100%;border-collapse:collapse;font-size:12.5px;min-width:900px}
+table.data th{text-align:right;font-weight:500;color:var(--muted);padding:9px 9px;white-space:nowrap;border-bottom:1px solid var(--line);cursor:pointer;user-select:none}
+table.data th.nosort{cursor:default}
+table.data th:first-child,table.data td:first-child{text-align:left;padding-left:18px}
+table.data td{text-align:right;padding:7px 9px;border-bottom:1px solid var(--line-soft);white-space:nowrap;font-variant-numeric:tabular-nums;font-family:var(--mono);font-size:12px}
+table.data td.src{font-family:var(--sans);font-size:12.5px}
+table.data td.neg{color:var(--neg);font-weight:600}
+table.data tbody tr{cursor:pointer}
+table.data tbody tr:hover{background:#F2F5F1}
+table.data tr.sel{background:var(--pos-bg)}
+table.data tr.sel td.src{font-weight:700;color:var(--pos-dk)}
+table.data tfoot td{font-weight:700;border-top:1px solid var(--line);background:#FAFBF9}
+.chip{display:inline-block;font-size:11.5px;font-weight:500;border-radius:999px;padding:1px 10px;font-family:var(--sans)}
+.chip.add{background:var(--pos-bg);color:var(--pos-dk)}
+.chip.keep{background:var(--slate-bg);color:var(--slate)}
+.chip.watch{background:var(--warn-bg);color:var(--warn-dk)}
+.chip.stop{background:var(--neg-bg);color:#7A2417}
+.minitable{font-size:12px;color:var(--muted);padding:2px 18px 10px;font-family:var(--mono)}
+.cumstrip{background:var(--card);border:1px dashed var(--line);border-radius:12px;padding:8px 16px;font-size:12.5px;color:var(--muted);font-family:var(--mono);margin:0 0 12px}
+.evdot{position:absolute;top:3px;right:5px;width:6px;height:6px;border-radius:50%;background:#B57414;z-index:6}
+.evline{font-size:12.5px;color:var(--warn-dk);background:var(--warn-bg);border-radius:8px;padding:4px 12px;display:inline-block;margin:8px 0 0}
+
+.funnel-stage{border-radius:10px;background:var(--pos-bg);color:var(--pos-dk);height:38px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;margin:0 auto;min-width:130px}
+.funnel-rate{font-size:12px;color:var(--muted);text-align:center;padding:4px 0;font-family:var(--mono)}
+.funnel-meta{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:12px}
+.funnel-meta .chip{background:#F2F5F1;color:var(--ink);font-family:var(--mono);font-size:11.5px}
+
+select{font:inherit;font-size:13px;padding:5px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink)}
+
+.brief{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:14px;position:relative}
+.brief::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--ink);border-radius:14px 0 0 14px}
+.brief h2{font-family:var(--serif);font-weight:900;font-size:17px;margin:0 0 2px}
+.brief h2 .srcnote{font-family:var(--sans);font-weight:400;font-size:11.5px;color:var(--muted)}
+.brief .cols{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:12px}
+.brief h3{font-size:13px;margin:0 0 6px;color:var(--muted);font-weight:700;letter-spacing:.08em}
+.brief .txt{font-size:14px;line-height:1.85;color:#232D27;white-space:pre-wrap}
+.brief .txt.empty{color:#9AA59D;font-size:12.5px}
+
+.ovgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-bottom:14px}
+.ovcard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;cursor:pointer;position:relative;overflow:hidden;text-align:left;font:inherit}
+.ovcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--h);opacity:.85}
+.ovcard .nm{font-family:var(--serif);font-weight:900;font-size:17px;display:flex;align-items:center;gap:8px}
+.ovcard .nm i{width:9px;height:9px;border-radius:50%;background:var(--h);font-style:normal}
+.ovcard .hv{font-family:var(--mono);font-weight:600;font-size:26px;margin-top:6px}
+.ovcard .hv.negval{color:var(--neg)}
+.ovcard .sub2{font-size:11.5px;color:var(--muted);font-family:var(--mono)}
+.ovcard .chinfo{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.7}
+
+details.doc{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:12px}
+details.doc summary{cursor:pointer;font-weight:700;font-size:14px;padding:14px 18px;list-style:none}
+details.doc summary::before{content:"▸";margin-right:8px;color:var(--muted);font-size:12px}
+details.doc[open] summary::before{content:"▾"}
+details.doc .body{padding:0 18px 16px;font-size:13.5px;color:#333B38}
+details.doc table{border-collapse:collapse;width:100%;font-size:12.5px;margin:8px 0}
+details.doc table th,details.doc table td{border:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top}
+details.doc table th{background:#F4F6F3;font-weight:500;white-space:nowrap}
+details.doc code{background:#F0F2EF;border-radius:6px;padding:1px 6px;font-size:12px;font-family:var(--mono)}
+.banner{border-radius:12px;padding:10px 16px;font-size:13px;margin-bottom:14px;display:none}
+.banner.show{display:block}
+.banner.warn{background:var(--warn-bg);color:var(--warn-dk)}
+footer{font-size:12px;color:var(--muted);margin-top:22px}
+@media (max-width:900px){
+  .grid2,.brief .cols{grid-template-columns:1fr}
+  h1{font-size:21px} .hero .v{font-size:25px}
+  .weekbar{flex-direction:column} .weekbar .now{border-right:0;border-bottom:1px solid var(--line-soft);padding:0 0 10px}
+}
+@media print{ .headctl,.connbar,.prodtabs{display:none} body{background:#fff} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <div>
+      <p class="eyebrow">WEEKLY SETTLEMENT ・ 週報結算</p>
+      <h1>三產品 週報 Dashboard</h1>
+      <p class="sub">資料來源：各產品試算表的「週報」分頁（gviz 直讀）｜每週填完週報列後按「重新整理」</p>
+    </div>
+    <div class="headctl">
+      <span class="pill"><span class="dot" id="pillDot"></span><span id="pillTxt">讀取中…</span></span>
+      <button class="btn" id="refreshBtn" type="button">↻ 重新整理</button>
+    </div>
+  </div>
+
+  <div class="banner warn" id="banner"></div>
+  <div class="connbar" id="connbar"></div>
+  <div class="prodtabs" id="prodtabs"></div>
+
+  <div id="viewOverview" style="display:none">
+    <div class="ovgrid" id="ovgrid"></div>
+    <div class="cumstrip" id="ovsum"></div>
+    <p class="sub" style="color:var(--muted);font-size:12.5px">點任一產品卡進入該產品頁；卡上數字為最新一週。</p>
+  </div>
+
+  <div id="viewProduct" style="display:none">
+
+    <div class="weekbar">
+      <div class="now">
+        <div>
+          <div class="wkprod" id="wkprod"></div>
+          <div class="wklb" id="wklb">—</div>
+          <div class="wkrange" id="wkrange"></div>
+          <div class="wkhint" id="wkhint">點右側任一週切換檢視</div>
+        </div>
+      </div>
+      <div class="rulerside">
+        <div class="newwrap">
+          <div class="axis" id="rulerAxis"></div>
+          <div class="rl-grid" id="rulerGrid"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero" id="hero"></div>
+    <div class="cumstrip" id="cumstrip"></div>
+    <div class="kpis" id="kpis"></div>
+
+    <div id="prodTrends"></div>
+
+    <div class="chhead">
+      <h2>渠道成效</h2>
+      <span class="cap" id="chcap"></span>
+    </div>
+
+    <div class="card tablecard">
+      <h2>來源明細</h2>
+      <p class="hint" id="tblhint"></p>
+      <div class="tbl-scroll">
+        <table class="data">
+          <thead><tr id="tblHead"></tr></thead>
+          <tbody id="tblBody"></tbody>
+          <tfoot><tr id="tblFoot"></tr></tfoot>
+        </table>
+      </div>
+      <p class="minitable" id="tblfoot2"></p>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2 id="funnelTitle">漏斗檢視</h2>
+        <p class="hint">點上表任一列切換來源；電銷自動顯示為 撥打 → 接通。</p>
+        <div id="funnel"></div>
+      </div>
+      <div class="card">
+        <h2>資源分配象限</h2>
+        <p class="hint" id="quadHint"></p>
+        <div class="chartbox"><canvas id="quadChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px">
+      <h2 style="display:inline">渠道週趨勢</h2>
+      <select id="trendMetric" style="float:right" aria-label="趨勢指標"></select>
+      <p class="hint">切換指標比較各來源走勢；點圖例可隱藏或顯示線條。</p>
+      <div class="chartbox"><canvas id="trendChart"></canvas></div>
+    </div>
+
+    <div class="brief">
+      <h2>本週判讀 <span class="srcnote" id="briefSrc"></span></h2>
+      <p class="evline" id="briefEvent" style="display:none"></p>
+      <div class="cols">
+        <div><h3>數據解讀</h3><div class="txt" id="briefRead"></div></div>
+        <div><h3>行動建議</h3><div class="txt" id="briefAct"></div></div>
+      </div>
+    </div>
+
+    <div class="card tablecard" style="margin-bottom:14px">
+      <h2>近 12 週明細</h2>
+      <p class="hint">產品層週明細；點任一列切換上方檢視週。</p>
+      <div class="tbl-scroll">
+        <table class="data" style="min-width:820px">
+          <thead><tr id="wkHead"></tr></thead>
+          <tbody id="wkBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <details class="doc">
+    <summary>「週報」分頁欄位規格與抓取方式</summary>
+    <div class="body">
+      <p>每個產品的試算表各開一個名為 <code>週報</code> 的分頁。第一列為欄名，之後每週填 <b>1 列全站 ＋ N 列渠道</b>（N 由你自訂的渠道數決定，不限 8 個），由上到下＝由舊到新。試算表共用設定需為「知道連結的使用者：檢視者」。</p>
+      <table>
+        <tr><th>欄位</th><th>誰要填</th><th>說明</th></tr>
+        <tr><td><code>週別</code></td><td>每列必填</td><td>同一週用同一個標籤（例：7/6 或 W28），這是分組依據</td></tr>
+        <tr><td><code>開始日</code></td><td>建議填</td><td>該週起始日，務必含年份（例：2026/7/6）；填了才會顯示「第 N 週」＋起訖日期＋星期，並依日期排序、判斷「本週進行中」</td></tr>
+        <tr><td><code>來源</code></td><td>每列必填</td><td>「全站／總計／合計／整體」為保留字（產品總表列）；渠道名稱可自訂（Meta、Google、自然…皆可，Dashboard 自動抓名配色），同一渠道每週拼法需一致；名稱恰為「電銷」時漏斗自動套撥打→接通</td></tr>
+        <tr><td><code>曝光</code>、<code>點擊</code></td><td>渠道列</td><td>電銷填 撥打、接通</td></tr>
+        <tr><td><code>首充</code>（或 訂單）</td><td>渠道列＋全站</td><td>博弈填首充人數；電商填訂單數</td></tr>
+        <tr><td><code>充值</code>（或 營業額）</td><td>渠道列＋全站</td><td>博弈填充值金額；電商填營業額</td></tr>
+        <tr><td><code>花費</code></td><td>渠道列＋全站</td><td>該渠道投放／獲客成本；無成本渠道可留空</td></tr>
+        <tr><td><code>總流水</code>、<code>GGR</code>、<code>NGR</code>、<code>提領</code>、<code>充值人數</code>、<code>日活躍</code>、<code>周活躍</code>、<code>註冊</code>、<code>優惠</code></td><td>全站列（博弈）</td><td>殺率＝GGR÷總流水（GGR 未填則不顯示殺率，不會用 NGR 頂替）；充提差＝充值−提領、ARPPU＝充值÷充值人數、充值PR＝充值人數÷周活躍、DAU/WAU 反映黏著度，全部自動計算。你們的 NGR 口徑＝GGR−紅利−稅金−分潤，由你們自行算好填入即可</td></tr>
+        <tr><td><code>營業費用</code></td><td>全站列</td><td>淨貢獻：博弈＝NGR−花費−營業費用；電商＝營業額−花費−營業費用</td></tr>
+        <tr><td><code>複充人數</code>（電商可寫 回購人數）</td><td>渠道列・選填</td><td>填了會多出「複充率／回購率」欄；複充率＜20% 的渠道，加碼自動降為「觀察（複充低）」</td></tr>
+        <tr><td><code>週目標</code></td><td>全站列・選填</td><td>填該週 NGR（電商填營業額）目標，英雄數字會顯示達成率</td></tr>
+        <tr><td><code>事件</code></td><td>全站列・選填</td><td>大戶贏走、活動、帳號被封等異常註記；週尺標橘點、本週判讀顯示</td></tr>
+        <tr><td><code>數據解讀</code>、<code>行動建議</code></td><td>全站列</td><td>文字欄，顯示在「本週判讀」，儲存格內換行會保留</td></tr>
+      </table>
+      <p>抓取方式：以 <code>https://docs.google.com/spreadsheets/d/試算表ID/gviz/tq?tqx=out:csv&amp;sheet=週報</code> 直讀 CSV，欄名支援同義詞（訂單＝首充、營業額＝充值、花費＝廣告成本…），全站列可用 全站／總計／合計 任一寫法；同週同來源填多列會自動加總。衍生指標（點擊率、首充率、ARPPU、CPA、ROAS、殺率、充提差、淨貢獻）一律由儀表板計算，不用手填。整週未填任何數字的渠道會自動從報表隱藏；每週「開始日」都含年份時，週序改依日期排序（防插錯列）；「歸因覆蓋率」＝渠道合計÷全站，低於 80% 會紅字提醒追蹤機制在漏單。在 Claude 預覽視窗因沙箱限制通常抓不到資料，請下載後用 Chrome／Edge 開啟。</p>
+    </div>
+  </details>
+
+  <details class="doc">
+    <summary>指標公式、建議判定規則與來源定義</summary>
+    <div class="body">
+      <p><b>渠道判定（門檻在檔案內 <code>verdict()</code> 可調）：</b>ROAS ≥ 3 且金額較前週成長 → <span class="chip add">加碼</span>；ROAS ≥ 1.5 → <span class="chip keep">維持</span>；ROAS 1–1.5 → <span class="chip watch">觀察</span>；ROAS ＜ 1 → <span class="chip stop">止血</span>；未填花費 → <span class="chip watch">補成本</span>。該週有填「複充人數」時，複充率＜20% 的渠道即使達加碼門檻也降為「觀察（複充低）」。</p>
+      <p><b>渠道命名：</b>渠道清單由「週報」分頁的來源欄自動帶入，可自由增刪改名，顏色自動配；「全站／總計／合計／整體」為保留字；名稱恰為「電銷」時漏斗自動套撥打→接通。地區或平台的彙總列（例如某地區總覽）請不要放進渠道列，否則會與底下的細分渠道重複計算，拉高合計與歸因覆蓋率。博弈口徑：渠道表的「訂單」＝首充、「營業額」＝充值，ROAS＝充值÷花費；追蹤靠專屬短網址＋折扣碼，帳號被平台處理造成波動時請在「事件」欄備註。</p>
+    </div>
+  </details>
+
+  <footer>合併版 v1｜骨架：三產品週報 Dashboard（週結算）× 渠道成效層｜週報制：每週一填「週報」分頁後重新整理。</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+"use strict";
+
+/* ══════════════ ★ 連動設定區 ══════════════
+   sheetId＝試算表網址 /d/ 後面那串；sheetName＝分頁名稱。
+   三個產品各自獨立一份試算表，分頁一律讀「週報」。
+   fx＝換算到同一基準幣的匯率（例：KSh→NT$ 填 0.24）；
+   三個都填了，總覽頁會多顯示「集團合計」，留 null 則不顯示。 */
+const PRODUCTS_CONFIG = [
+  { name:"Wezabet",  kind:"casino", cur:"KSh", hue:"#22657E", fx:null,
+    sheetId:"1GlQVJyX7C7KXfH_juU2-q523edN5T2uLW_Z8u2L30kg", sheetName:"週報" },
+  { name:"KE7",      kind:"casino", cur:"KSh", hue:"#8F5E14", fx:null,
+    sheetId:"1nkpMbqktj8Bd0LQHSzMI0-6AJA4JDDka6lpT_cHF9gU", sheetName:"週報" },
+  { name:"Mar 電商", kind:"ecom",   cur:"NT$", hue:"#445A9A", fx:null,
+    sheetId:"1NuB9SH4YUOuh-sJlUUdQL2-avWRterRtqB6-WhvxdeU", sheetName:"週報" }
+];
+const FETCH_TIMEOUT_MS = 15000;
+const RULER_WEEKS = 12;
+
+/* 動態渠道配色盤：依「週報」分頁出現的來源名稱依序取色 */
+const PALETTE = ["#3D7DD1","#1D9E75","#7A6FD6","#E0921F","#D85A30","#7C8B93","#C9538A","#7A9A2E","#22657E","#8F5E14","#B3527F","#4E7A5A"];
+
+/* 預設八渠道：僅供連線失敗時的示意數據使用；實際渠道清單改由「週報」分頁的來源欄自動帶入 */
+const SOURCES = [
+  {name:"官方社群媒體", color:"#3D7DD1"},
+  {name:"SEO",         color:"#1D9E75"},
+  {name:"外圍",        color:"#7A6FD6"},
+  {name:"廣告",        color:"#E0921F"},
+  {name:"渠道",        color:"#D85A30"},
+  {name:"網軍",        color:"#7C8B93"},
+  {name:"炒群",        color:"#C9538A"},
+  {name:"電銷",        color:"#7A9A2E"}
+];
+const SITE_NAMES = ["全站","總計","合計","整體","total","全部"];
+
+/* 欄名同義詞（比對時去空白、轉小寫） */
+const ALIAS = {
+  week:["週別","周別","week","週"],
+  start:["開始日","開始日期","週起始","起始日","startdate","日期"],
+  src:["來源","渠道來源","流量來源","source"],
+  imp:["曝光","曝光數","撥打","撥打數","impressions"],
+  clk:["點擊","點擊數","接通","接通數","clicks"],
+  ord:["首充","首充人數","訂單","訂單數","成交","ftd","orders"],
+  rev:["充值","充值金額","營業額","營收","銷售額","revenue","deposit"],
+  cost:["花費","廣告成本","成本","投放成本","spend","cost"],
+  turnover:["總流水","流水","turnover"],
+  ngr:["ngr"],
+  ggr:["ggr","總輸贏","毛收入"],
+  withdraw:["提領","提款","出金","withdraw"],
+  payers:["充值人數","付費人數","儲值人數","payers"],
+  dau:["活躍","平均日活躍","日活","日活躍","dau"],
+  wau:["周活躍","週活躍","wau","周活","週活"],
+  reg:["註冊","新增註冊","註冊數","registrations"],
+  bonus:["優惠","優惠送出","紅利","bonus"],
+  opex:["營業費用","營運費用","opex"],
+  rebuy:["複充","複充人數","回購","回購人數","複購人數"],
+  target:["週目標","目標","target"],
+  event:["事件","事件註記","註記"],
+  read:["數據解讀","解讀","判讀"],
+  act:["行動建議","建議","行動"]
+};
+const CH_KEYS = ["imp","clk","ord","rev","cost"];
+
+/* 渠道建議判定（門檻可調）。hasRebuy＝該週有填複充資料時，
+   複充率＜20% 的渠道即使 ROAS 達標也只給「觀察」，避免買到一次性假量 */
+function verdict(d, prev, hasRebuy){
+  if(!(d.cost > 0)) return {cls:"watch", label:"補成本"};
+  const grew = prev ? d.rev >= prev.rev : true;
+  let v;
+  if(d.roas >= 3 && grew) v = {cls:"add",   label:"加碼"};
+  else if(d.roas >= 1.5)  v = {cls:"keep",  label:"維持"};
+  else if(d.roas >= 1)    v = {cls:"watch", label:"觀察"};
+  else v = {cls:"stop", label:"止血"};
+  if(hasRebuy && v.cls === "add" && d.ord > 0 && d.rbr < 0.2) v = {cls:"watch", label:"觀察（複充低）"};
+  return v;
+}
+
+/* ══════════════ 備用示意數據（連不上時顯示，方便先看版型） ══════════════ */
+function genDemo(kind){
+  const F = [0.66,0.72,0.7,0.79,0.84,0.9,0.95,1];
+  const starts = ["5/11","5/18","5/25","6/1","6/8","6/15","6/22","6/29"];
+  const holds = [0.037,0.031,0.039,0.041,-0.004,0.038,0.041,0.0415];
+  const baseCasino = [
+    [420000,12600,820,590400,240000],
+    [96000,5760,560,492800,0],
+    [150000,4500,310,235600,120000],
+    [1900000,47500,1180,814200,1020000],
+    [320000,9600,540,442800,180000],
+    [280000,5600,168,100800,150000],
+    [90000,5400,430,365500,90000],
+    [18000,5400,612,807840,360000]
+  ];
+  const baseEcom = [
+    [80000,2400,120,132000,25000],
+    [30000,1800,144,172800,18000],
+    [20000,800,40,38000,20000],
+    [200000,6000,240,216000,100000],
+    [50000,3000,300,300000,60000],
+    [60000,1200,36,30600,40000],
+    [15000,900,63,50400,15000],
+    [5000,1500,150,225000,90000]
+  ];
+  const base = kind === "casino" ? baseCasino : baseEcom;
+  return starts.map((st,i)=>{
+    const f = F[i];
+    const ch = base.map((r,si)=>r.map(v=>Math.round(v * f * (1 + ((i*7 + si*3) % 9 - 4) / 100))));
+    const t = ch.reduce((a,r)=>({ord:a.ord+r[2], rev:a.rev+r[3], cost:a.cost+r[4]}),{ord:0,rev:0,cost:0});
+    const site = {};
+    if(kind === "casino"){
+      site.turnover = Math.round(168000000 * f);
+      site.ngr = Math.round(site.turnover * holds[i]);
+      site.ggr = Math.round(site.turnover * (holds[i] + 0.014));
+      site.withdraw = Math.round(t.rev * 0.16);
+      site.payers = Math.round(t.ord * 2.8);
+      site.dau = Math.round(12800 * f);
+      site.wau = Math.round(site.dau * 5.8);
+      site.reg = Math.round(24000 * f);
+      site.bonus = Math.round(2340000 * f);
+      site.opex = 900000;
+    } else {
+      site.opex = 150000;
+    }
+    const read = i === starts.length - 1 ? "（示意）本週為備用示意數據，尚未連上試算表「週報」分頁。" : "";
+    const act = i === starts.length - 1 ? "（示意）依「週報分頁欄位規格」建立分頁後，按右上「重新整理」。" : "";
+    return { label: st, start: "2026/" + st, ch, site, read, act };
+  });
+}
+
+/* ══════════════ 讀取與解析 ══════════════ */
+function parseCSV(text){
+  const rows = []; let row = [], cur = "", q = false;
+  for(let i = 0; i < text.length; i++){
+    const ch = text[i];
+    if(q){
+      if(ch === '"'){ if(text[i+1] === '"'){ cur += '"'; i++; } else q = false; }
+      else cur += ch;
+    } else {
+      if(ch === '"') q = true;
+      else if(ch === ",") { row.push(cur); cur = ""; }
+      else if(ch === "\n"){ row.push(cur); rows.push(row); row = []; cur = ""; }
+      else if(ch === "\r"){ }
+      else cur += ch;
+    }
+  }
+  row.push(cur); rows.push(row);
+  return rows.filter(r=>r.some(c=>String(c).trim() !== ""));
+}
+const norm = s => String(s).trim().replace(/\s+/g,"").replace(/（/g,"(").replace(/）/g,")").toLowerCase();
+const num = v => { const n = parseFloat(String(v).replace(/[^0-9.\-]/g,"")); return isFinite(n) ? n : 0; };
+const hasVal = v => String(v == null ? "" : v).trim() !== "";
+
+function buildFromCSV(text){
+  if(/^\s*(<!doctype|<html)/i.test(text)) throw new Error("無法讀取：請確認共用設定為「知道連結者可檢視」");
+  const rows = parseCSV(String(text).replace(/^\uFEFF/,""));
+  if(rows.length < 2) throw new Error("「週報」分頁資料列不足");
+  const head = rows[0].map(norm);
+  const idx = {};
+  for(const key of Object.keys(ALIAS)){
+    const i = head.findIndex(h=>ALIAS[key].some(a=>h === norm(a)));
+    if(i >= 0) idx[key] = i;
+  }
+  const missing = ["week","src","rev"].filter(k=>idx[k] === undefined);
+  if(missing.length) throw new Error("缺少必要欄位：" + missing.map(k=>ALIAS[k][0]).join("、") + "（實際欄名：" + rows[0].join(" / ") + "）");
+  const get = (row,key)=> idx[key] === undefined ? "" : row[idx[key]];
+  const nameOf = v => String(v).trim().replace(/[＊*]+$/, "");
+  const isSite = sn => SITE_NAMES.some(n=>norm(n) === norm(sn));
+
+  /* 第一輪：依出現順序掃出渠道名稱清單，動態配色 */
+  const sources = [], sIdx = new Map();
+  for(let r = 1; r < rows.length; r++){
+    const wl = String(get(rows[r],"week") || "").trim();
+    const sn = nameOf(get(rows[r],"src") || "");
+    if(!wl || !sn || isSite(sn)) continue;
+    if(!sIdx.has(sn)){
+      sIdx.set(sn, sources.length);
+      sources.push({ name:sn, color:PALETTE[sources.length % PALETTE.length] });
+    }
+  }
+  if(!sources.length) throw new Error("找不到任何渠道列（來源欄除「全站」外，需至少一個渠道名稱）");
+
+  /* 第二輪：依渠道清單建陣列、填入數字 */
+  const weeks = [], wIdx = new Map();
+  let used = 0;
+  for(let r = 1; r < rows.length; r++){
+    const row = rows[r];
+    const wl = String(get(row,"week") || "").trim();
+    const sn = nameOf(get(row,"src") || "");
+    if(!wl || !sn) continue;
+    let wi = wIdx.get(wl);
+    if(wi === undefined){
+      wi = weeks.length; wIdx.set(wl, wi);
+      weeks.push({ label:wl, start:"", ch:sources.map(()=>[0,0,0,0,0,0]), site:{}, read:"", act:"", target:null, event:"" });
+    }
+    const wk = weeks[wi];
+    if(hasVal(get(row,"start")) && !wk.start) wk.start = String(get(row,"start")).trim();
+    if(isSite(sn)){
+      for(const k of CH_KEYS){ if(hasVal(get(row,k))) wk.site[k] = (wk.site[k] || 0) + num(get(row,k)); }
+      for(const k of ["turnover","ggr","ngr","withdraw","payers","dau","wau","reg","bonus","opex"]){
+        if(hasVal(get(row,k))) wk.site[k] = (wk.site[k] || 0) + num(get(row,k));
+      }
+      if(hasVal(get(row,"read"))) wk.read = String(get(row,"read")).trim();
+      if(hasVal(get(row,"act")))  wk.act  = String(get(row,"act")).trim();
+      if(hasVal(get(row,"target"))) wk.target = num(get(row,"target"));
+      if(hasVal(get(row,"event")))  wk.event  = String(get(row,"event")).trim();
+      used++;
+    } else {
+      const t = wk.ch[sIdx.get(sn)];
+      t[0]+=num(get(row,"imp")); t[1]+=num(get(row,"clk")); t[2]+=num(get(row,"ord"));
+      t[3]+=num(get(row,"rev")); t[4]+=num(get(row,"cost")); t[5]+=num(get(row,"rebuy"));
+      used++;
+    }
+  }
+  if(!weeks.length) throw new Error("找不到有效資料列（週別＋來源皆須填）");
+  const ts = weeks.map(w=>{
+    const m = String(w.start || "").trim().replace(/[年月]/g,"/").replace(/日/g,"").match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+    return m ? new Date(+m[1], +m[2]-1, +m[3]).getTime() : null;
+  });
+  if(weeks.length > 1 && ts.every(t=>t != null)){
+    const zipped = weeks.map((w,i)=>({w, t:ts[i]}));
+    zipped.sort((a,b)=>a.t - b.t);
+    weeks.length = 0;
+    zipped.forEach(z=>weeks.push(z.w));
+  }
+  return { weeks, sources, mode:"live", note:`已連動（${used} 列、${weeks.length} 週、${sources.length} 個渠道）` };
+}
+async function fetchSheet(cfg){
+  const url = `https://docs.google.com/spreadsheets/d/${cfg.sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(cfg.sheetName)}&t=${Date.now()}`;
+  const ctrl = new AbortController();
+  const timer = setTimeout(()=>ctrl.abort(), FETCH_TIMEOUT_MS);
+  try{
+    const res = await fetch(url, { signal: ctrl.signal, redirect: "follow" });
+    if(!res.ok) throw new Error("HTTP " + res.status + "（請確認試算表 ID 與分頁「" + cfg.sheetName + "」存在）");
+    return await res.text();
+  } finally { clearTimeout(timer); }
+}
+
+/* ══════════════ 衍生計算 ══════════════ */
+const safe = (a,b) => b > 0 ? a/b : 0;
+function deriveCh(row){
+  const [imp, clk, ord, rev, cost, rebuy = 0] = row;
+  return { imp, clk, ord, rev, cost, rebuy,
+    ctr:safe(clk,imp), cvr:safe(ord,clk), aov:safe(rev,ord), cpa:safe(cost,ord), roas:safe(rev,cost), rbr:safe(rebuy,ord) };
+}
+function chTotals(rows){
+  const t = rows.reduce((a,d)=>({imp:a.imp+d.imp,clk:a.clk+d.clk,ord:a.ord+d.ord,rev:a.rev+d.rev,cost:a.cost+d.cost,rebuy:a.rebuy+d.rebuy}),{imp:0,clk:0,ord:0,rev:0,cost:0,rebuy:0});
+  return { ...t, ctr:safe(t.clk,t.imp), cvr:safe(t.ord,t.clk), aov:safe(t.rev,t.ord), cpa:safe(t.cost,t.ord), roas:safe(t.rev,t.cost), rbr:safe(t.rebuy,t.ord) };
+}
+function bundle(P, w){
+  const cfg = P.cfg, wk = P.weeks[w];
+  const ch = wk.ch.map(deriveCh);
+  const sum = chTotals(ch);
+  const s = wk.site || {};
+  const pick = k => (s[k] != null ? s[k] : sum[k]);
+  const imp = pick("imp"), clk = pick("clk"), ord = pick("ord"), rev = pick("rev"), cost = pick("cost");
+  const b = { ch, sum, imp, clk, ord, rev, cost,
+    ctr:safe(clk,imp), cvr:safe(ord,clk), aov:safe(rev,ord), cpa:safe(cost,ord), roas:safe(rev,cost),
+    opex: s.opex != null ? s.opex : null, read: wk.read, act: wk.act,
+    target: wk.target != null ? wk.target : null, event: wk.event || "",
+    label: wk.label, start: wk.start };
+  b.coverage = (s.rev != null && s.rev > 0 && sum.rev >= 0) ? sum.rev / s.rev : null;
+  if(cfg.kind === "casino"){
+    b.turnover = s.turnover != null ? s.turnover : null;
+    b.ngr = s.ngr != null ? s.ngr : null;
+    b.ggr = s.ggr != null ? s.ggr : null;
+    b.withdraw = s.withdraw != null ? s.withdraw : null;
+    b.payers = s.payers != null ? s.payers : null;
+    b.dau = s.dau != null ? s.dau : null;
+    b.wau = s.wau != null ? s.wau : null;
+    b.reg = s.reg != null ? s.reg : null;
+    b.bonus = s.bonus != null ? s.bonus : null;
+    b.diff = b.withdraw != null ? rev - b.withdraw : null;
+    b.hold = (b.ggr != null && b.turnover) ? b.ggr/b.turnover : null;
+    b.arppu = safe(rev, b.payers != null ? b.payers : ord);
+    b.pr  = (b.payers != null && b.dau) ? b.payers/b.dau : null;
+    b.wpr = (b.payers != null && b.wau) ? b.payers/b.wau : null;
+    b.r2f = b.reg ? ord/b.reg : null;
+    b.net = b.ngr != null ? b.ngr - cost - (b.opex || 0) : null;
+    b.ruler = b.ngr != null ? b.ngr : (b.diff != null ? b.diff : rev);
+  } else {
+    b.net = rev - cost - (b.opex || 0);
+    b.ruler = rev;
+  }
+  return b;
+}
+
+/* ══════════════ 格式化 ══════════════ */
+const nf = new Intl.NumberFormat("zh-TW");
+const pct1 = v => (v*100).toFixed(1) + "%";
+const pct2 = v => (v*100).toFixed(2) + "%";
+function fmtShort(P, v){
+  if(v == null || isNaN(v)) return "—";
+  const a = Math.abs(v), sign = v < 0 ? "-" : "";
+  if(P.cfg.kind === "casino"){
+    if(a >= 1e6) return sign + (a/1e6).toFixed(a >= 1e7 ? 0 : 2) + "M";
+    if(a >= 1e3) return sign + (a/1e3).toFixed(0) + "K";
+    return sign + nf.format(Math.round(a));
+  }
+  if(a >= 1e4) return sign + (a/1e4).toFixed(1) + " 萬";
+  return sign + nf.format(Math.round(a));
+}
+const fmtInt = v => v == null || isNaN(v) ? "—" : nf.format(Math.round(v));
+function parseStartDate(v){
+  const m = String(v || "").trim().replace(/[年月]/g,"/").replace(/日/g,"").match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+  return m ? new Date(+m[1], +m[2]-1, +m[3]) : null;
+}
+function isoWeek(d){
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = t.getUTCDay() || 7;
+  t.setUTCDate(t.getUTCDate() + 4 - day);
+  const ys = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  return Math.ceil((((t - ys) / 86400000) + 1) / 7);
+}
+function deltaHtml(cur, prev, type, dir){
+  if(prev == null || cur == null || (type !== "pp" && !prev)) return '<span class="d flat">—</span>';
+  let diff, txt;
+  if(type === "pp"){ diff = cur - prev; txt = Math.abs(diff*100).toFixed(1) + " pp"; }
+  else if(type === "abs"){ diff = cur - prev; txt = Math.abs(diff).toFixed(2); }
+  else { diff = (cur - prev) / Math.abs(prev); txt = Math.abs(diff*100).toFixed(1) + "%"; }
+  const eps = type === "pct" ? 0.0005 : 0.0001;
+  const arrow = diff > eps ? "▲" : diff < -eps ? "▼" : "＝";
+  let cls = "flat";
+  if(dir === "up" && arrow !== "＝") cls = diff > 0 ? "up" : "down";
+  if(dir === "down" && arrow !== "＝") cls = diff < 0 ? "up" : "down";
+  return `<span class="d ${cls}">${arrow} ${txt} vs 前週</span>`;
+}
+
+/* ══════════════ 狀態 ══════════════ */
+const PD = {};
+const state = { tab:"總覽", w:0, src:"", sortKey:null, sortDir:-1 };
+let lastSync = null, loading = false;
+let quadChart = null, trendChart = null;
+const hasChart = typeof window.Chart !== "undefined";
+if(hasChart){
+  Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+  Chart.defaults.color = "#66716C";
+  if(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) Chart.defaults.animation = false;
+}
+const $ = id => document.getElementById(id);
+const curP = () => PD[state.tab];
+const srcOf = P => (P && P.sources) || SOURCES;
+
+/* ══════════════ 讀取流程 ══════════════ */
+async function loadAll(){
+  if(loading) return;
+  loading = true; renderStatus();
+  await Promise.all(PRODUCTS_CONFIG.map(async cfg=>{
+    try{
+      const built = buildFromCSV(await fetchSheet(cfg));
+      PD[cfg.name] = { cfg, weeks:built.weeks, sources:built.sources, mode:"live", note:built.note };
+    } catch(err){
+      const msg = err && err.name === "AbortError" ? "逾時" : (err && err.message ? err.message : String(err));
+      PD[cfg.name] = { cfg, weeks:genDemo(cfg.kind), sources:SOURCES, mode:"demo", note:"連線失敗（" + msg + "）→ 顯示示意數據" };
+    }
+  }));
+  loading = false; lastSync = new Date();
+  if(state.tab !== "總覽" && PD[state.tab]) state.w = PD[state.tab].weeks.length - 1;
+  renderAll();
+}
+
+/* ══════════════ 全域列 ══════════════ */
+function renderStatus(){
+  const liveN = PRODUCTS_CONFIG.filter(c=>PD[c.name] && PD[c.name].mode === "live").length;
+  const dot = $("pillDot"), txt = $("pillTxt");
+  if(loading){ dot.className = "dot mid"; txt.textContent = "讀取中…"; }
+  else if(liveN === PRODUCTS_CONFIG.length){ dot.className = "dot"; txt.textContent = `3/3 已連線${lastSync ? "・" + lastSync.toLocaleTimeString("zh-TW",{hour12:false,hour:"2-digit",minute:"2-digit"}) : ""}`; }
+  else if(liveN > 0){ dot.className = "dot mid"; txt.textContent = `${liveN}/3 已連線`; }
+  else { dot.className = "dot bad"; txt.textContent = "未連線（示意數據）"; }
+  $("refreshBtn").disabled = loading;
+  $("refreshBtn").textContent = loading ? "更新中…" : "↻ 重新整理";
+  $("connbar").innerHTML = PRODUCTS_CONFIG.map(c=>{
+    const d = PD[c.name];
+    if(!d) return `<span class="st"><span class="cdot off"></span>${c.name}：讀取中…</span>`;
+    return `<span class="st"><span class="cdot ${d.mode === "live" ? "ok" : "err"}"></span>${c.name}：${d.note}</span>`;
+  }).join("") + `<span class="right">${lastSync ? "更新於 " + lastSync.toLocaleTimeString("zh-TW",{hour12:false}) : ""}</span>`;
+  const demoMsgs = PRODUCTS_CONFIG.filter(c=>PD[c.name] && PD[c.name].mode === "demo");
+  const banner = $("banner");
+  if(demoMsgs.length && !loading){
+    banner.className = "banner warn show";
+    banner.textContent = "有產品尚未連上「週報」分頁，該產品目前顯示示意數據。請依頁尾「週報分頁欄位規格」建立分頁並確認共用設定，再按重新整理。";
+  } else banner.className = "banner warn";
+}
+function renderTabs(){
+  const box = $("prodtabs");
+  box.innerHTML = "";
+  const mk = (label, hue)=>{
+    const b = document.createElement("button");
+    b.type = "button"; b.innerHTML = `<i style="--h:${hue}"></i>${label}`;
+    if(state.tab === label) b.className = "on";
+    b.addEventListener("click", ()=>{
+      state.tab = label;
+      if(label !== "總覽" && PD[label]) state.w = PD[label].weeks.length - 1;
+      renderAll();
+    });
+    box.appendChild(b);
+  };
+  mk("總覽", "#141D18");
+  PRODUCTS_CONFIG.forEach(c=>mk(c.name, c.hue));
+}
+
+/* ══════════════ 總覽 ══════════════ */
+function renderOverview(){
+  const g = $("ovgrid");
+  g.innerHTML = "";
+  for(const cfg of PRODUCTS_CONFIG){
+    const P = PD[cfg.name];
+    if(!P){ continue; }
+    const n = P.weeks.length;
+    const cur = bundle(P, n - 1);
+    const prev = n > 1 ? bundle(P, n - 2) : null;
+    const heroLb = cfg.kind === "casino" ? "NGR" : "營業額";
+    const heroV = cfg.kind === "casino" ? cur.ngr : cur.rev;
+    const heroPrev = prev ? (cfg.kind === "casino" ? prev.ngr : prev.rev) : null;
+    const vals = P.weeks.map((_,i)=>bundle(P,i).ruler).slice(-RULER_WEEKS);
+    const maxA = Math.max(...vals.map(v=>Math.abs(v || 0)), 1);
+    const spark = vals.map((v,i)=>{
+      const h = Math.max(2, Math.abs(v||0)/maxA*26);
+      const negv = (v||0) < 0;
+      return `<rect x="${i*12}" y="${negv ? 30 : 30-h}" width="8" height="${h}" rx="2" fill="${negv ? "#E7B9AE" : (i === vals.length-1 ? "#0C6B54" : "#C6D4CB")}"/>`;
+    }).join("");
+    const S = srcOf(P);
+    const byRoas = cur.ch.map((d,i)=>({n:S[i].name, roas:d.roas, cost:d.cost})).filter(x=>x.cost > 0).sort((a,b)=>b.roas - a.roas);
+    const chline = byRoas.length ? `渠道 ROAS 最佳：${byRoas[0].n} ${byRoas[0].roas.toFixed(2)}｜最弱：${byRoas[byRoas.length-1].n} ${byRoas[byRoas.length-1].roas.toFixed(2)}` : "渠道尚無成本資料";
+    const card = document.createElement("button");
+    card.type = "button"; card.className = "ovcard"; card.style.setProperty("--h", cfg.hue);
+    card.innerHTML =
+      `<div class="nm"><i></i>${cfg.name}${P.mode === "demo" ? ' <span class="chip watch">示意</span>' : ""}</div>` +
+      `<div class="hv${(heroV||0) < 0 ? " negval" : ""}">${heroLb} ${fmtShort(P, heroV)} <span class="sub2">${cfg.cur}</span></div>` +
+      `<div>${deltaHtml(heroV, heroPrev, "pct", "up")}</div>` +
+      `<svg width="${vals.length*12}" height="32" viewBox="0 0 ${vals.length*12} 32" style="margin-top:8px">${spark}</svg>` +
+      `<div class="chinfo">${chline}<br>最新週：${cur.label}</div>`;
+    card.addEventListener("click", ()=>{ state.tab = cfg.name; state.w = n - 1; renderAll(); });
+    g.appendChild(card);
+  }
+  const sumEl = $("ovsum");
+  if(PRODUCTS_CONFIG.every(c=>typeof c.fx === "number" && c.fx > 0)){
+    let main = 0, net = 0;
+    for(const c of PRODUCTS_CONFIG){
+      const P = PD[c.name]; if(!P) continue;
+      const b = bundle(P, P.weeks.length - 1);
+      main += ((c.kind === "casino" ? b.ngr : b.rev) || 0) * c.fx;
+      net += (b.net || 0) * c.fx;
+    }
+    const f = v => Math.abs(v) >= 1e4 ? (v/1e4).toFixed(1) + " 萬" : nf.format(Math.round(v));
+    sumEl.textContent = `集團合計（各產品最新週 × 設定匯率折合同一基準幣）：主營收（NGR＋營業額）${f(main)}・淨貢獻 ${f(net)}`;
+  } else {
+    sumEl.textContent = "提示：在檔案最上方 PRODUCTS_CONFIG 為每個產品填入 fx 匯率（折合同一基準幣），此處會顯示集團合計。";
+  }
+}
+
+/* ══════════════ 週尺 ══════════════ */
+function renderRuler(){
+  const P = curP();
+  const n = P.weeks.length;
+  const off = Math.max(0, n - RULER_WEEKS);
+  const vals = [];
+  for(let i = off; i < n; i++) vals.push(bundle(P, i).ruler || 0);
+  const cnt = vals.length;
+  const hasNeg = vals.some(v=>v < 0);
+  const maxPos = Math.max(...vals.map(v=>Math.max(v,0)), 1);
+  const maxNeg = Math.max(...vals.map(v=>Math.max(-v,0)), 1);
+  const base = hasNeg ? 50 : 68;
+  const posArea = base - 10, negArea = hasNeg ? (74 - base) : 0;
+  const grid = $("rulerGrid");
+  grid.innerHTML = "";
+  grid.style.gridTemplateColumns = `repeat(${cnt},1fr)`;
+  vals.forEach((v,k)=>{
+    const wi = off + k;
+    const col = document.createElement("button");
+    col.type = "button";
+    col.className = "col" + (wi === state.w ? " on" : "");
+    let bar;
+    if(v >= 0){
+      const h = Math.max(2, v/maxPos*posArea);
+      bar = `<div class="wbar" style="bottom:${76-base}px;height:${h.toFixed(1)}px"></div>`;
+    } else {
+      const h = Math.max(3, -v/maxNeg*negArea);
+      bar = `<div class="wbar neg" style="top:${base}px;height:${h.toFixed(1)}px"></div>`;
+    }
+    const ev = P.weeks[wi].event;
+    if(ev) col.title = "事件：" + ev;
+    const chip = wi === state.w ? `<div class="vchip">${fmtShort(P, v)}</div>` : "";
+    col.innerHTML = `<div class="plot">${chip}${ev ? '<span class="evdot"></span>' : ""}${bar}</div><div class="clb">${P.weeks[wi].label}</div>`;
+    col.addEventListener("click", ()=>{ state.w = wi; renderProduct(); });
+    grid.appendChild(col);
+  });
+  const pts = vals.map((v,k)=>{
+    const x = k + 0.5;
+    const y = v >= 0 ? base - v/maxPos*posArea : base + (-v)/maxNeg*negArea;
+    return `${x},${y.toFixed(1)}`;
+  }).join(" ");
+  const svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
+  svg.setAttribute("class","rl-svg-top");
+  svg.setAttribute("viewBox",`0 0 ${cnt} 76`);
+  svg.setAttribute("preserveAspectRatio","none");
+  svg.innerHTML =
+    `<line x1="0" y1="${base}" x2="${cnt}" y2="${base}" stroke="#A7B2A8" stroke-width="1" vector-effect="non-scaling-stroke"/>` +
+    `<polyline points="${pts}" fill="none" stroke="#7E8B83" stroke-width="1.7" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>`;
+  grid.appendChild(svg);
+  $("rulerAxis").innerHTML =
+    `<span style="top:8px">${fmtShort(P, maxPos)}</span><span style="top:${base}px">0</span>` +
+    (hasNeg ? `<span style="top:${74}px">-${fmtShort(P, maxNeg)}</span>` : "");
+  const b = bundle(P, state.w);
+  const sd = parseStartDate(b.start);
+  const isLatest = state.w === P.weeks.length - 1;
+  const behind = P.weeks.length - 1 - state.w;
+  let title = b.label;
+  let range = "在週報分頁「開始日」填含年份的日期（例 2026/6/29），這裡會顯示第幾週與起訖日";
+  let badge = isLatest ? '<span class="chip add">最新週</span>' : `<span class="chip keep">距最新 ${behind} 週</span>`;
+  if(sd){
+    const ed = new Date(sd.getTime() + 6 * 86400000);
+    const WD = ["日","一","二","三","四","五","六"];
+    const fd = d => `${d.getMonth()+1}/${d.getDate()}（${WD[d.getDay()]}）`;
+    title = `第 ${isoWeek(sd)} 週`;
+    range = `${fd(sd)} – ${fd(ed)}・共 7 天`;
+    const today = new Date(); today.setHours(0,0,0,0);
+    if(today >= sd && today <= ed) badge = '<span class="chip watch">本週進行中</span>';
+  }
+  $("wkprod").innerHTML = `${P.cfg.name}　${badge}`;
+  $("wklb").textContent = title;
+  $("wkrange").textContent = range;
+  $("wkhint").textContent = `週尺高度＝${P.cfg.kind === "casino" ? "NGR" : "營業額"}（${P.cfg.cur}）・點任一週或下方表格列切換`;
+}
+
+/* ══════════════ 英雄數字與指標卡 ══════════════ */
+function renderHero(){
+  const P = curP();
+  const cur = bundle(P, state.w);
+  const prev = state.w > 0 ? bundle(P, state.w - 1) : null;
+  const defs = P.cfg.kind === "casino" ? [
+    {lb:"NGR", unit:P.cfg.cur, v:cur.ngr, pv:prev && prev.ngr, t:"pct"},
+    {lb:"總流水", unit:P.cfg.cur, v:cur.turnover, pv:prev && prev.turnover, t:"pct"},
+    {lb:"充提差", unit:P.cfg.cur, v:cur.diff, pv:prev && prev.diff, t:"pct"},
+    {lb:"淨貢獻", unit:P.cfg.cur, v:cur.net, pv:prev && prev.net, t:"pct"}
+  ] : [
+    {lb:"營業額", unit:P.cfg.cur, v:cur.rev, pv:prev && prev.rev, t:"pct"},
+    {lb:"訂單數", unit:"", v:cur.ord, pv:prev && prev.ord, t:"pct", int:true},
+    {lb:"ROAS", unit:"", v:cur.roas, pv:prev && prev.roas, t:"abs", raw:v=>v.toFixed(2)},
+    {lb:"客單價", unit:P.cfg.cur, v:cur.aov, pv:prev && prev.aov, t:"pct", int:true}
+  ];
+  $("hero").innerHTML = defs.map((d,di)=>{
+    const val = d.v == null ? "—" : (d.raw ? d.raw(d.v) : (d.int ? fmtInt(d.v) : fmtShort(P, d.v)));
+    let targetHtml = "";
+    if(di === 0 && cur.target != null && cur.target > 0 && d.v != null){
+      const rate = d.v / cur.target;
+      targetHtml = `<div class="d ${rate >= 1 ? "up" : "down"}">目標 ${fmtShort(P, cur.target)}・達成 ${(rate*100).toFixed(0)}%</div>`;
+    }
+    return `<div class="cell" style="--h:${P.cfg.hue}"><div class="lb">${d.lb}${d.unit ? ` <span class="unit">${d.unit}</span>` : ""}</div>` +
+      `<div class="v${(d.v||0) < 0 ? " negval" : ""}">${val}</div>${deltaHtml(d.v, d.pv, d.t, "up")}${targetHtml}</div>`;
+  }).join("");
+  renderCum(P);
+}
+function renderCum(P){
+  const n = P.weeks.length, from = Math.max(0, n - 12);
+  const bs = [];
+  for(let w = from; w < n; w++) bs.push(bundle(P, w));
+  const casino = P.cfg.kind === "casino";
+  const sum = k => bs.reduce((a,b)=>a + (b[k] || 0), 0);
+  const rv = bs.map(b=>b.ruler || 0);
+  let growth = "";
+  if(rv.length > 1 && rv[0] > 0 && rv[rv.length-1] > 0){
+    const g = Math.pow(rv[rv.length-1]/rv[0], 1/(rv.length-1)) - 1;
+    growth = `・週均成長 ${g >= 0 ? "+" : ""}${(g*100).toFixed(1)}%`;
+  }
+  $("cumstrip").textContent =
+    `近 ${bs.length} 週累計：${casino ? "NGR" : "營業額"} ${fmtShort(P, sum(casino ? "ngr" : "rev"))}` +
+    `・淨貢獻 ${fmtShort(P, sum("net"))}・花費 ${fmtShort(P, sum("cost"))}${growth}`;
+}
+function renderKpis(){
+  const P = curP();
+  const cur = bundle(P, state.w);
+  const prev = state.w > 0 ? bundle(P, state.w - 1) : null;
+  const gv = (o,k)=>o ? o[k] : null;
+  const kp = (lb, v, pv, f, t, dir)=>{
+    if(v == null || isNaN(v)) return "";
+    return `<div class="kpi"><div class="lb">${lb}</div><div class="v${v < 0 ? " negval" : ""}">${f(v)}</div>${deltaHtml(v, pv, t, dir || "up")}</div>`;
+  };
+  const groups = P.cfg.kind === "casino" ? [
+    { head:"規模", items:[
+      kp("平均日活躍（DAU）", cur.dau,    gv(prev,"dau"),    fmtInt,            "pct"),
+      kp("周活躍（WAU）",    cur.wau,    gv(prev,"wau"),    fmtInt,            "pct"),
+      kp("新增註冊",         cur.reg,    gv(prev,"reg"),    fmtInt,            "pct"),
+    ]},
+    { head:"獲客", items:[
+      kp("首充人數",         cur.ord,    gv(prev,"ord"),    fmtInt,            "pct"),
+      kp("註冊→首充率",      cur.r2f,    gv(prev,"r2f"),    pct1,              "pp"),
+      kp("CPA",             cur.cpa,    gv(prev,"cpa"),    fmtInt,            "pct", "down"),
+      kp("廣告成本",         cur.cost,   gv(prev,"cost"),   v=>fmtShort(P,v), "pct", "none"),
+    ]},
+    { head:"變現", items:[
+      kp("充值人數",         cur.payers, gv(prev,"payers"), fmtInt,            "pct"),
+      kp("充值PR（充值人數÷周活）", cur.wpr, gv(prev,"wpr"), pct1, "pp"),
+      kp("ARPPU",           cur.arppu,  gv(prev,"arppu"),  fmtInt,            "pct"),
+    ]},
+    { head:"效率 & 損益", items:[
+      kp("ROAS",            cur.roas,   gv(prev,"roas"),   v=>v.toFixed(2),  "abs"),
+      kp("GGR",             cur.ggr,    gv(prev,"ggr"),    v=>fmtShort(P,v), "pct"),
+      kp("殺率（GGR÷流水）", cur.hold,   gv(prev,"hold"),   pct2,              "pp"),
+      kp("優惠送出",        cur.bonus,  gv(prev,"bonus"),  v=>fmtShort(P,v), "pct", "none"),
+      kp("營業費用",        cur.opex,   gv(prev,"opex"),   v=>fmtShort(P,v), "pct", "none"),
+    ]},
+  ] : [
+    { head:"獲客", items:[
+      kp("轉換率",          cur.cvr,    gv(prev,"cvr"),    pct1,              "pp"),
+      kp("點擊率",          cur.ctr,    gv(prev,"ctr"),    pct1,              "pp"),
+      kp("廣告花費",        cur.cost,   gv(prev,"cost"),   v=>fmtShort(P,v), "pct", "none"),
+      kp("CPA",             cur.cpa,    gv(prev,"cpa"),    fmtInt,            "pct", "down"),
+    ]},
+    { head:"損益", items:[
+      kp("營業費用",        cur.opex,   gv(prev,"opex"),   v=>fmtShort(P,v), "pct", "none"),
+      kp("淨貢獻",         cur.net,    gv(prev,"net"),    v=>fmtShort(P,v), "pct"),
+    ]},
+  ];
+  const html = groups.map(grp=>{
+    const items = grp.items.filter(Boolean).join("");
+    if(!items) return "";
+    return `<div class="kpi-section"><div class="kpi-head">${grp.head}</div><div class="kpi-row">${items}</div></div>`;
+  }).join("");
+  $("kpis").innerHTML = html || `<div class="kpi-section"><div class="kpi-row"><div class="kpi"><div class="lb">尚無全站列資料</div><div class="v">—</div></div></div></div>`;
+}
+
+/* ══════════════ 產品週走勢（全站層圖表） ══════════════ */
+let prodCharts = [];
+function renderProdTrends(){
+  const P = curP();
+  const host = $("prodTrends");
+  prodCharts.forEach(c=>c.destroy());
+  prodCharts = [];
+  if(!hasChart){ host.innerHTML = ""; return; }
+  const n = P.weeks.length, from = Math.max(0, n - 12);
+  const bs = [];
+  for(let w = from; w < n; w++) bs.push(bundle(P, w));
+  const labels = bs.map(b=>b.label.length > 7 ? b.label.slice(0,7) + "…" : b.label);
+  const has = k => bs.some(b=>b[k] != null && !isNaN(b[k]));
+  const hue = P.cfg.hue;
+  const fInt = v=>fmtInt(v), fS = v=>fmtShort(P, v);
+  const base = { maintainAspectRatio:false, interaction:{mode:"index", intersect:false} };
+  const leg = { position:"bottom", labels:{boxWidth:10, boxHeight:10, font:{size:11}, padding:8} };
+  const tt = { callbacks:{ label:c=>` ${c.dataset.label}：${(c.dataset._fmt || fS)(c.parsed.y)}` } };
+  const sc = (fmtL, fmtR)=>{
+    const s = { x:{grid:{display:false}, ticks:{font:{size:10}}},
+      y:{grid:{color:"#EDF0EC"}, ticks:{callback:fmtL, font:{size:10}}} };
+    if(fmtR) s.y1 = { position:"right", grid:{drawOnChartArea:false}, ticks:{callback:fmtR, font:{size:10}} };
+    return s;
+  };
+  const line = (label, data, color, extra)=>Object.assign(
+    {type:"line", label, data, borderColor:color, backgroundColor:color, borderWidth:2, pointRadius:2.5, tension:.25}, extra || {});
+  const defs = [];
+  if(P.cfg.kind === "casino"){
+    if(has("ngr")) defs.push({ t:"NGR × 總流水", h:"長條＝NGR（左軸，負值紅色）；折線＝總流水（右軸）",
+      data:{labels, datasets:[
+        {type:"bar", label:"NGR", data:bs.map(b=>b.ngr), backgroundColor:bs.map(b=>(b.ngr||0) < 0 ? "#B23A2B" : "#0C6B54"), borderRadius:4, yAxisID:"y", _fmt:fS},
+        line("總流水", bs.map(b=>b.turnover), "#22657E", {yAxisID:"y1", _fmt:fS})
+      ]}, opts:{...base, plugins:{legend:leg, tooltip:tt}, scales:sc(fS, fS)} });
+    if(has("withdraw")) defs.push({ t:"充值 vs 提領・充提差", h:"長條＝充值／提領；黑虛線＝充提差（同一金額軸）",
+      data:{labels, datasets:[
+        {type:"bar", label:"充值", data:bs.map(b=>b.rev), backgroundColor:"#4E9C82", borderRadius:4, _fmt:fS},
+        {type:"bar", label:"提領", data:bs.map(b=>b.withdraw), backgroundColor:"#D9A08B", borderRadius:4, _fmt:fS},
+        line("充提差", bs.map(b=>b.diff), "#141D18", {borderDash:[6,4], _fmt:fS})
+      ]}, opts:{...base, plugins:{legend:leg, tooltip:tt}, scales:sc(fS, null)} });
+    if(has("dau") || has("wau") || has("reg")) defs.push({ t:"活躍走勢", h:"黑線＝日活（DAU）、灰虛線＝周活（WAU，有填才出現）（左軸）；長條＝新增註冊、綠線＝首充（右軸）",
+      data:{labels, datasets:[
+        line("日活躍(DAU)", bs.map(b=>b.dau),      "#141D18", {yAxisID:"y", _fmt:fInt}),
+        line("周活躍(WAU)", bs.map(b=>b.wau||null), "#9AA59D", {yAxisID:"y", _fmt:fInt, borderDash:[5,3]}),
+        {type:"bar", label:"新增註冊", data:bs.map(b=>b.reg), backgroundColor:"#C6D4CB", borderRadius:4, yAxisID:"y1", _fmt:fInt},
+        line("首充人數", bs.map(b=>b.ord), "#0C6B54", {yAxisID:"y1", _fmt:fInt})
+      ].filter(d=>d.data && d.data.some(v=>v!=null && !isNaN(v) && v!==0))}, opts:{...base, plugins:{legend:leg, tooltip:tt}, scales:sc(fInt, fInt)} });
+    defs.push({ t:"投放效率：ROAS × CPA", h:"ROAS（左軸）越高越好；CPA（右軸）越低越好",
+      data:{labels, datasets:[
+        line("ROAS", bs.map(b=>Number(b.roas.toFixed(2))), "#0C6B54", {yAxisID:"y", _fmt:v=>Number(v).toFixed(2)}),
+        line("CPA", bs.map(b=>Math.round(b.cpa)), "#B23A2B", {yAxisID:"y1", _fmt:fInt})
+      ]}, opts:{...base, plugins:{legend:leg, tooltip:tt}, scales:sc(v=>Number(v).toFixed(1), fInt)} });
+  } else {
+    defs.push({ t:"營業額 × 訂單", h:"長條＝營業額（左軸）；折線＝訂單數（右軸）",
+      data:{labels, datasets:[
+        {type:"bar", label:"營業額", data:bs.map(b=>b.rev), backgroundColor:hue, borderRadius:4, yAxisID:"y", _fmt:fS},
+        line("訂單數", bs.map(b=>b.ord), "#141D18", {yAxisID:"y1", _fmt:fInt})
+      ]}, opts:{...base, plugins:{legend:leg, tooltip:tt}, scales:sc(fS, fInt)} });
+    defs.push({ t:"投放效率：花費 × ROAS", h:"長條＝廣告花費（左軸）；綠線＝ROAS（右軸）",
+      data:{labels, datasets:[
+        {type:"bar", label:"廣告花費", data:bs.map(b=>b.cost), backgroundColor:"#D9A08B", borderRadius:4, yAxisID:"y", _fmt:fS},
+        line("ROAS", bs.map(b=>Number(b.roas.toFixed(2))), "#0C6B54", {yAxisID:"y1", _fmt:v=>Number(v).toFixed(2)})
+      ]}, opts:{...base, plugins:{legend:leg, tooltip:tt}, scales:sc(fS, v=>Number(v).toFixed(1))} });
+  }
+  const missNote = P.cfg.kind === "casino" && (!has("withdraw") || !has("dau"))
+    ? "（提領、活躍、註冊在全站列補齊後會多出對應圖表）" : "";
+  host.innerHTML =
+    `<div class="chhead"><h2>產品週走勢</h2><span class="cap">${P.cfg.name}・近 ${bs.length} 週・全站層${missNote}</span></div>` +
+    `<div class="grid2">` + defs.map((d,i)=>
+      `<div class="card"><h2>${d.t}</h2><p class="hint">${d.h}</p><div class="chartbox" style="height:250px"><canvas id="pc${i}"></canvas></div></div>`
+    ).join("") + `</div>`;
+  defs.forEach((d,i)=>{
+    prodCharts.push(new Chart($("pc" + i), { type:"bar", data:d.data, options:d.opts }));
+  });
+}
+
+/* ══════════════ 渠道層 ══════════════ */
+function LK(P){
+  return P.cfg.kind === "casino"
+    ? {ord:"首充", rev:"充值", cvr:"首充率", aov:"ARPPU", tel:"首充", telr:"首充率"}
+    : {ord:"訂單", rev:"營業額", cvr:"轉化率", aov:"客單價", tel:"成交", telr:"成交率"};
+}
+function stagesOf(P, srcName){
+  const k = LK(P);
+  if(srcName === "電銷") return {st:["撥打","接通",k.tel], rt:["接通率",k.telr]};
+  return {st:["曝光","點擊",k.ord], rt:["點擊率",k.cvr]};
+}
+function renderChTable(){
+  const P = curP();
+  const k = LK(P);
+  const cur = bundle(P, state.w);
+  const prevB = state.w > 0 ? bundle(P, state.w - 1) : null;
+  const S = srcOf(P);
+  const visible = cur.ch.map((d,i)=>({ ...d, name:S[i].name, i }))
+    .filter(d=>d.imp || d.clk || d.ord || d.rev || d.cost);
+  if(visible.length && !visible.some(d=>d.name === state.src)) state.src = visible[0].name;
+  const hasRebuy = visible.some(d=>d.rebuy > 0);
+  let covHtml = "";
+  if(cur.coverage != null){
+    const c = cur.coverage;
+    const bad = c < 0.8, over = c > 1.05;
+    covHtml = `｜歸因覆蓋率 <b style="color:${bad ? "var(--neg)" : "var(--pos-dk)"}">${(c*100).toFixed(0)}%</b>` +
+      (bad ? "（渠道合計明顯低於全站，短網址／折扣碼可能在漏單）" : over ? "（渠道合計高於全站，可能重複計算）" : "");
+  }
+  $("chcap").innerHTML = `${P.cfg.name}・${cur.label}｜${P.cfg.kind === "casino" ? "「" + k.ord + "」＝首充人數、「" + k.rev + "」＝充值金額" : "轉化率＝點擊→成單"}${covHtml}`;
+  $("tblhint").textContent = "點欄名排序、點列切換下方漏斗；整週未填的渠道自動隱藏。「建議」為規則判定，供週會討論起點。";
+  const COLS = [
+    {key:"name", label:"來源"}, {key:"imp", label:"曝光", f:fmtInt}, {key:"clk", label:"點擊", f:fmtInt},
+    {key:"ctr", label:"點擊率", f:pct1}, {key:"ord", label:k.ord, f:fmtInt}, {key:"cvr", label:k.cvr, f:pct1},
+    {key:"aov", label:k.aov, f:fmtInt}, {key:"rev", label:k.rev, f:fmtInt}, {key:"cost", label:"花費", f:fmtInt},
+    {key:"cpa", label:"CPA", f:v=>v > 0 ? fmtInt(v) : "—"}, {key:"roas", label:"ROAS", f:v=>v.toFixed(2)}
+  ];
+  if(hasRebuy) COLS.push({key:"rbr", label:P.cfg.kind === "casino" ? "複充率" : "回購率", f:pct1});
+  COLS.push({key:"verdict", label:"建議"});
+  const head = $("tblHead");
+  head.innerHTML = "";
+  for(const c of COLS){
+    const th = document.createElement("th");
+    const sortable = c.key !== "verdict";
+    th.className = sortable ? "" : "nosort";
+    th.innerHTML = c.label + (state.sortKey === c.key ? `<span style="font-size:10px"> ${state.sortDir < 0 ? "↓" : "↑"}</span>` : "");
+    if(sortable) th.addEventListener("click", ()=>{
+      if(state.sortKey === c.key) state.sortDir *= -1;
+      else { state.sortKey = c.key; state.sortDir = c.key === "name" ? 1 : -1; }
+      renderChTable();
+    });
+    head.appendChild(th);
+  }
+  let rows = visible;
+  if(state.sortKey && state.sortKey !== "name") rows = rows.slice().sort((a,b)=>(a[state.sortKey] - b[state.sortKey]) * state.sortDir);
+  else if(state.sortKey === "name") rows = rows.slice().sort((a,b)=>a.name.localeCompare(b.name,"zh-Hant") * state.sortDir);
+  const body = $("tblBody");
+  body.innerHTML = "";
+  if(!rows.length){
+    body.innerHTML = `<tr><td class="src" colspan="${COLS.length}" style="color:var(--muted)">（本週尚無渠道列——在「週報」分頁填入渠道數據後顯示）</td></tr>`;
+  }
+  for(const d of rows){
+    const tr = document.createElement("tr");
+    tr.tabIndex = 0;
+    if(d.name === state.src) tr.className = "sel";
+    const v = verdict(d, prevB ? prevB.ch[d.i] : null, hasRebuy);
+    tr.innerHTML = COLS.map(c=>{
+      if(c.key === "name") return `<td class="src">${d.name}${d.name === "電銷" ? "＊" : ""}</td>`;
+      if(c.key === "verdict") return `<td><span class="chip ${v.cls}">${v.label}</span></td>`;
+      const raw = d[c.key];
+      const neg = (c.key === "roas" && d.cost > 0 && raw < 1) ? ' class="neg"' : "";
+      return `<td${neg}>${c.f(raw)}</td>`;
+    }).join("");
+    const pick = ()=>{ state.src = d.name; renderChTable(); renderFunnel(); };
+    tr.addEventListener("click", pick);
+    tr.addEventListener("keydown", e=>{ if(e.key === "Enter" || e.key === " "){ e.preventDefault(); pick(); } });
+    body.appendChild(tr);
+  }
+  const t = chTotals(visible);
+  $("tblFoot").innerHTML = COLS.map(c=>{
+    if(c.key === "name") return `<td class="src">合計</td>`;
+    if(c.key === "verdict") return "<td></td>";
+    return `<td>${c.f(t[c.key])}</td>`;
+  }).join("");
+  $("tblfoot2").textContent = "＊電銷：曝光＝撥打、點擊＝接通｜ROAS＜1 紅字＝" + k.rev + "低於花費" +
+    (hasRebuy ? `｜${P.cfg.kind === "casino" ? "複充率" : "回購率"}＝${P.cfg.kind === "casino" ? "複充" : "回購"}人數÷${k.ord}，＜20% 時加碼自動降為觀察` : "");
+}
+function renderFunnel(){
+  const P = curP();
+  const b = bundle(P, state.w);
+  const S = srcOf(P);
+  const visible = b.ch.map((d,i)=>({d, name:S[i].name})).filter(o=>o.d.imp || o.d.clk || o.d.ord || o.d.rev || o.d.cost);
+  if(!visible.length){
+    $("funnelTitle").textContent = "漏斗檢視";
+    $("funnel").innerHTML = '<p class="hint">本週尚無渠道數據。</p>';
+    return;
+  }
+  let pick = visible.find(o=>o.name === state.src);
+  if(!pick){ pick = visible[0]; state.src = pick.name; }
+  const d = pick.d;
+  const sg = stagesOf(P, state.src);
+  const k = LK(P);
+  $("funnelTitle").textContent = `漏斗檢視｜${state.src}`;
+  const wOf = v => Math.max(22, Math.round(Math.sqrt(safe(v, d.imp)) * 100));
+  $("funnel").innerHTML =
+    `<div class="funnel-stage" style="width:100%">${sg.st[0]} ${fmtInt(d.imp)}</div>` +
+    `<div class="funnel-rate">↓ ${sg.rt[0]} ${pct1(d.ctr)}</div>` +
+    `<div class="funnel-stage" style="width:${wOf(d.clk)}%">${sg.st[1]} ${fmtInt(d.clk)}</div>` +
+    `<div class="funnel-rate">↓ ${sg.rt[1]} ${pct1(d.cvr)}</div>` +
+    `<div class="funnel-stage" style="width:${wOf(d.ord)}%">${sg.st[2]} ${fmtInt(d.ord)}</div>` +
+    `<div class="funnel-meta">` +
+      `<span class="chip">${k.aov} ${fmtInt(d.aov)}</span>` +
+      `<span class="chip">CPA ${d.ord > 0 && d.cost > 0 ? fmtInt(d.cpa) : "—"}</span>` +
+      `<span class="chip"${d.cost > 0 && d.roas < 1 ? ' style="color:var(--neg)"' : ""}>ROAS ${d.cost > 0 ? d.roas.toFixed(2) : "—"}</span>` +
+      `<span class="chip">${k.rev} ${fmtShort(P, d.rev)}</span>` +
+    `</div>`;
+}
+const quadLines = {
+  id:"quadLines",
+  afterDatasetsDraw(chart, args, opts){
+    const {ctx, chartArea, scales} = chart;
+    if(!opts.xAvg || !chartArea) return;
+    const x = scales.x.getPixelForValue(opts.xAvg);
+    const y = scales.y.getPixelForValue(opts.yAvg);
+    ctx.save();
+    ctx.strokeStyle = "#B8C0BB"; ctx.setLineDash([5,4]); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x, chartArea.top); ctx.lineTo(x, chartArea.bottom); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(chartArea.left, y); ctx.lineTo(chartArea.right, y); ctx.stroke();
+    ctx.restore();
+  }
+};
+function renderQuad(){
+  if(!hasChart) return;
+  const P = curP();
+  const k = LK(P);
+  $("quadHint").textContent = `X＝曝光（對數）、Y＝${k.cvr}、泡泡＝${k.rev}；紅＝ROAS＜1，虛線＝本週平均。右上＝優先加碼、左下＝觀察或止血。`;
+  const S = srcOf(P);
+  const rows = bundle(P, state.w).ch.map((d,i)=>({...d, name:S[i].name})).filter(r=>r.imp > 0 || r.rev > 0);
+  const maxRev = Math.max(...rows.map(r=>r.rev), 1);
+  const pts = rows.map(r=>({ x:Math.max(r.imp,1), y:r.cvr*100, r:6 + Math.sqrt(r.rev/maxRev)*20, meta:r }));
+  const t = chTotals(rows);
+  const xAvg = rows.length ? Math.exp(rows.reduce((a,r)=>a + Math.log(Math.max(r.imp,1)), 0) / rows.length) : 1;
+  if(quadChart) quadChart.destroy();
+  quadChart = new Chart($("quadChart"), {
+    type:"bubble",
+    data:{ datasets:[{
+      data:pts,
+      backgroundColor:pts.map(p=>p.meta.cost > 0 && p.meta.roas < 1 ? "rgba(178,58,43,.5)" : "rgba(12,107,84,.45)"),
+      borderColor:pts.map(p=>p.meta.cost > 0 && p.meta.roas < 1 ? "#B23A2B" : "#0C6B54"),
+      borderWidth:1.2
+    }]},
+    options:{
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        quadLines:{ xAvg, yAvg:t.cvr*100 },
+        tooltip:{ callbacks:{ label:c=>{
+          const m = c.raw.meta;
+          return [` ${m.name}`, ` 曝光 ${fmtInt(m.imp)}｜${k.cvr} ${pct1(m.cvr)}`,
+                  ` ${k.rev} ${fmtInt(m.rev)}｜ROAS ${m.cost > 0 ? m.roas.toFixed(2) : "—"}`];
+        }}}
+      },
+      scales:{
+        x:{ type:"logarithmic", title:{display:true, text:"曝光（對數）", font:{size:11}}, grid:{color:"#EDF0EC"}, ticks:{maxTicksLimit:6, callback:v=>fmtShort(P,v)} },
+        y:{ title:{display:true, text:k.cvr + " %", font:{size:11}}, grid:{color:"#EDF0EC"}, beginAtZero:true }
+      }
+    },
+    plugins:[quadLines]
+  });
+}
+function trendDefs(P){
+  const k = LK(P);
+  return {
+    rev:{label:k.rev, tick:v=>fmtShort(P,v), val:d=>d.rev, agg:"sum"},
+    ord:{label:k.ord, tick:v=>fmtInt(v), val:d=>d.ord, agg:"sum"},
+    cost:{label:"花費", tick:v=>fmtShort(P,v), val:d=>d.cost, agg:"sum"},
+    roas:{label:"ROAS", tick:v=>Number(v).toFixed(1), val:d=>d.roas, agg:"roas"},
+    cvr:{label:k.cvr, tick:v=>Number(v).toFixed(1)+"%", val:d=>d.cvr*100, agg:"cvr"},
+    imp:{label:"曝光", tick:v=>fmtShort(P,v), val:d=>d.imp, agg:"sum"}
+  };
+}
+function renderTrendSel(){
+  const P = curP();
+  const defs = trendDefs(P);
+  const sel = $("trendMetric");
+  const keep = sel.value && defs[sel.value] ? sel.value : "rev";
+  sel.innerHTML = Object.keys(defs).map(kk=>`<option value="${kk}"${kk === keep ? " selected" : ""}>${defs[kk].label}</option>`).join("");
+}
+function renderTrend(){
+  if(!hasChart) return;
+  const P = curP();
+  const defs = trendDefs(P);
+  const M = defs[$("trendMetric").value] || defs.rev;
+  const perWeek = P.weeks.map((_,w)=>bundle(P, w));
+  const labels = P.weeks.map(w=>w.label.length > 8 ? w.label.slice(0,8) + "…" : w.label);
+  const S = srcOf(P);
+  const active = S.map((s,i)=>({s,i})).filter(o=>perWeek.some(b=>{
+    const d = b.ch[o.i];
+    return d.imp || d.clk || d.ord || d.rev || d.cost;
+  }));
+  const datasets = active.map(o=>({
+    label:o.s.name, data:perWeek.map(b=>Number(M.val(b.ch[o.i]).toFixed(3))),
+    borderColor:o.s.color, backgroundColor:o.s.color, borderWidth:1.6, pointRadius:2.5, tension:.25
+  }));
+  const totalLine = perWeek.map(b=>{
+    if(M.agg === "roas") return Number(b.sum.roas.toFixed(3));
+    if(M.agg === "cvr")  return Number((b.sum.cvr*100).toFixed(3));
+    return b.sum[$("trendMetric").value] != null ? b.sum[$("trendMetric").value] : 0;
+  });
+  datasets.push({ label:"合計", data:totalLine, borderColor:"#141D18", backgroundColor:"#141D18",
+    borderWidth:2.4, pointRadius:2.5, borderDash:[6,4], tension:.25 });
+  if(trendChart) trendChart.destroy();
+  trendChart = new Chart($("trendChart"), {
+    type:"line",
+    data:{ labels, datasets },
+    options:{
+      maintainAspectRatio:false,
+      interaction:{mode:"nearest", intersect:false},
+      plugins:{
+        legend:{position:"bottom", labels:{boxWidth:10, boxHeight:10, font:{size:11}, padding:10}},
+        tooltip:{callbacks:{label:c=>` ${c.dataset.label}：${M.tick(c.parsed.y)}`}}
+      },
+      scales:{
+        x:{grid:{display:false}},
+        y:{grid:{color:"#EDF0EC"}, ticks:{callback:v=>M.tick(v)}, beginAtZero:true}
+      }
+    }
+  });
+}
+function renderBrief(){
+  const P = curP();
+  const b = bundle(P, state.w);
+  $("briefSrc").textContent = `${b.label}・來源：「${P.cfg.sheetName}」分頁「全站」列的文字欄`;
+  const evEl = $("briefEvent");
+  if(b.event){ evEl.style.display = ""; evEl.textContent = "⚑ 本週事件：" + b.event; }
+  else evEl.style.display = "none";
+  const rEl = $("briefRead"), aEl = $("briefAct");
+  if(b.read){ rEl.className = "txt"; rEl.textContent = b.read; }
+  else { rEl.className = "txt empty"; rEl.textContent = "（本週「數據解讀」欄位為空——在週報分頁該週的全站列填入文字即會顯示於此）"; }
+  if(b.act){ aEl.className = "txt"; aEl.textContent = b.act; }
+  else { aEl.className = "txt empty"; aEl.textContent = "（本週「行動建議」欄位為空）"; }
+}
+function renderWeeklyTable(){
+  const P = curP();
+  const casino = P.cfg.kind === "casino";
+  const cols = casino
+    ? [["週","label"],["NGR","ngr"],["總流水","turnover"],["殺率","hold"],["首充","ord"],["ARPPU","arppu"],["充提差","diff"],["ROAS","roas"],["營業費用","opex"],["淨貢獻","net"]]
+    : [["週","label"],["營業額","rev"],["訂單","ord"],["客單價","aov"],["轉換率","cvr"],["ROAS","roas"],["CPA","cpa"],["營業費用","opex"],["淨貢獻","net"]];
+  $("wkHead").innerHTML = cols.map(c=>`<th class="nosort">${c[0]}</th>`).join("");
+  const body = $("wkBody");
+  body.innerHTML = "";
+  const n = P.weeks.length;
+  const from = Math.max(0, n - 12);
+  for(let w = n - 1; w >= from; w--){
+    const b = bundle(P, w);
+    const tr = document.createElement("tr");
+    if(w === state.w) tr.className = "sel";
+    tr.innerHTML = cols.map(c=>{
+      const key = c[1];
+      if(key === "label") return `<td class="src">${b.label}</td>`;
+      let v = b[key], txt;
+      if(v == null || (typeof v === "number" && isNaN(v))) txt = "—";
+      else if(key === "hold") txt = pct2(v);
+      else if(key === "cvr") txt = pct1(v);
+      else if(key === "roas") txt = v.toFixed(2);
+      else if(key === "aov" || key === "arppu" || key === "cpa" || key === "ord") txt = fmtInt(v);
+      else txt = fmtShort(P, v);
+      const neg = typeof v === "number" && v < 0 && (key === "ngr" || key === "net" || key === "diff") ? ' class="neg"' : "";
+      return `<td${neg}>${txt}</td>`;
+    }).join("");
+    tr.addEventListener("click", ()=>{ state.w = w; renderProduct(); });
+    body.appendChild(tr);
+  }
+}
+
+/* ══════════════ 組裝 ══════════════ */
+function renderProduct(){
+  const P = curP();
+  if(!P) return;
+  if(state.w > P.weeks.length - 1 || state.w < 0) state.w = Math.max(0, P.weeks.length - 1);
+  renderRuler(); renderHero(); renderKpis(); renderProdTrends(); renderTrendSel();
+  renderChTable(); renderFunnel(); renderBrief(); renderWeeklyTable();
+  if(hasChart){ renderQuad(); renderTrend(); }
+}
+function renderAll(){
+  renderStatus(); renderTabs();
+  const ov = state.tab === "總覽";
+  $("viewOverview").style.display = ov ? "" : "none";
+  $("viewProduct").style.display = ov ? "none" : "";
+  if(ov) renderOverview(); else renderProduct();
+}
+$("refreshBtn").addEventListener("click", loadAll);
+$("trendMetric").addEventListener("change", renderTrend);
+
+PRODUCTS_CONFIG.forEach(cfg=>{ PD[cfg.name] = { cfg, weeks:genDemo(cfg.kind), sources:SOURCES, mode:"demo", note:"讀取中…" }; });
+renderAll();
+loadAll();
+</script>
+</body>
+</html>
