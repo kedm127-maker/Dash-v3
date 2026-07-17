@@ -287,6 +287,44 @@ footer{font-size:12px;color:var(--muted);margin-top:22px}
 
   </div>
 
+  <details class="doc">
+    <summary>「週報」分頁欄位規格與抓取方式</summary>
+    <div class="body">
+      <p>每個產品的試算表各開一個名為 <code>週報</code> 的分頁。第一列為欄名，之後每週填 <b>1 列全站 ＋ N 列渠道</b>（N 由你自訂的渠道數決定，不限 8 個），由上到下＝由舊到新。試算表共用設定需為「知道連結的使用者：檢視者」。</p>
+      <table>
+        <tr><th>欄位</th><th>誰要填</th><th>說明</th></tr>
+        <tr><td><code>週別</code></td><td>每列必填</td><td>同一週用同一個標籤（例：7/6 或 W28），這是分組依據</td></tr>
+        <tr><td><code>開始日</code></td><td>建議填</td><td>該週起始日，務必含年份（例：2026/7/6）；填了才會顯示「第 N 週」＋起訖日期＋星期，並依日期排序、判斷「本週進行中」</td></tr>
+        <tr><td><code>來源</code></td><td>每列必填</td><td>「全站／總計／合計／整體」為保留字（產品總表列）；渠道名稱可自訂（Meta、Google、自然…皆可，Dashboard 自動抓名配色），同一渠道每週拼法需一致；名稱恰為「電銷」時漏斗自動套撥打→接通</td></tr>
+        <tr><td><code>曝光</code>、<code>點擊</code></td><td>渠道列</td><td>電銷填 撥打、接通</td></tr>
+        <tr><td><code>首充</code>（或 訂單）</td><td>渠道列＋全站</td><td>博弈填首充人數；電商填訂單數</td></tr>
+        <tr><td><code>充值</code>（或 營業額）</td><td>渠道列＋全站</td><td>博弈填充值金額；電商填營業額</td></tr>
+        <tr><td><code>花費</code></td><td>渠道列＋全站</td><td>該渠道投放／獲客成本；無成本渠道可留空</td></tr>
+        <tr><td><code>總流水</code>、<code>GGR</code>、<code>NGR</code>、<code>提領</code>、<code>充值人數</code>、<code>日活躍</code>、<code>周活躍</code>、<code>註冊</code>、<code>優惠</code></td><td>全站列（博弈）</td><td>殺率＝GGR÷總流水（GGR 未填則不顯示殺率，不會用 NGR 頂替）；充提差＝充值−提領、ARPPU＝充值÷充值人數、充值PR＝充值人數÷周活躍、DAU/WAU 反映黏著度，全部自動計算。你們的 NGR 口徑＝GGR−紅利−稅金−分潤，由你們自行算好填入即可</td></tr>
+        <tr><td><code>營業費用</code></td><td>全站列</td><td>淨貢獻：博弈＝NGR−花費−營業費用；電商＝營業額−花費−營業費用</td></tr>
+        <tr><td><code>複充人數</code>（電商可寫 回購人數）</td><td>渠道列・選填</td><td>填了會多出「複充率／回購率」欄；複充率＜20% 的渠道，加碼自動降為「觀察（複充低）」</td></tr>
+        <tr><td><code>週目標</code></td><td>全站列・選填</td><td>填該週 NGR（電商填營業額）目標，英雄數字會顯示達成率</td></tr>
+        <tr><td><code>事件</code></td><td>全站列・選填</td><td>大戶贏走、活動、帳號被封等異常註記；週尺標橘點、本週判讀顯示</td></tr>
+        <tr><td><code>數據解讀</code>、<code>行動建議</code></td><td>全站列</td><td>文字欄，顯示在「本週判讀」，儲存格內換行會保留</td></tr>
+      </table>
+      <p>抓取方式：以 <code>https://docs.google.com/spreadsheets/d/試算表ID/gviz/tq?tqx=out:csv&amp;sheet=週報</code> 直讀 CSV，欄名支援同義詞（訂單＝首充、營業額＝充值、花費＝廣告成本…），全站列可用 全站／總計／合計 任一寫法；同週同來源填多列會自動加總。衍生指標（點擊率、首充率、ARPPU、CPA、ROAS、殺率、充提差、淨貢獻）一律由儀表板計算，不用手填。整週未填任何數字的渠道會自動從報表隱藏；每週「開始日」都含年份時，週序改依日期排序（防插錯列）；「歸因覆蓋率」＝渠道合計÷全站，低於 80% 會紅字提醒追蹤機制在漏單。在 Claude 預覽視窗因沙箱限制通常抓不到資料，請下載後用 Chrome／Edge 開啟。</p>
+    </div>
+  </details>
+
+  <details class="doc">
+    <summary>指標公式、建議判定規則與來源定義</summary>
+    <div class="body">
+      <p><b>渠道判定（門檻在檔案內 <code>verdict()</code> 可調）：</b>ROAS ≥ 3 且金額較前週成長 → <span class="chip add">加碼</span>；ROAS ≥ 1.5 → <span class="chip keep">維持</span>；ROAS 1–1.5 → <span class="chip watch">觀察</span>；ROAS ＜ 1 → <span class="chip stop">止血</span>；未填花費 → <span class="chip watch">補成本</span>。該週有填「複充人數」時，複充率＜20% 的渠道即使達加碼門檻也降為「觀察（複充低）」。</p>
+      <p><b>渠道命名：</b>渠道清單由「週報」分頁的來源欄自動帶入，可自由增刪改名，顏色自動配；「全站／總計／合計／整體」為保留字；名稱恰為「電銷」時漏斗自動套撥打→接通。地區或平台的彙總列（例如某地區總覽）請不要放進渠道列，否則會與底下的細分渠道重複計算，拉高合計與歸因覆蓋率。博弈口徑：渠道表的「訂單」＝首充、「營業額」＝充值，ROAS＝充值÷花費；追蹤靠專屬短網址＋折扣碼，帳號被平台處理造成波動時請在「事件」欄備註。</p>
+    </div>
+  </details>
+
+  <footer>合併版 v1｜骨架：三產品週報 Dashboard（週結算）× 渠道成效層｜週報制：每週一填「週報」分頁後重新整理。</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+"use strict";
 
 /* ══════════════ ★ 連動設定區 ══════════════
    sheetId＝試算表網址 /d/ 後面那串；sheetName＝分頁名稱。
