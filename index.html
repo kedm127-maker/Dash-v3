@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>產品週報 Dashboard｜合併版</title>
+<title>三產品 週報 Dashboard｜合併版</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&display=swap" rel="stylesheet">
@@ -829,6 +829,7 @@ function renderRuler(){
   const isLatest = state.w === P.weeks.length - 1;
   const behind = P.weeks.length - 1 - state.w;
   let title = b.label;
+  let range = "在週報分頁「開始日」填含年份的日期（例 2026/6/29），這裡會顯示第幾週與起訖日";
   let badge = isLatest ? '<span class="chip add">最新週</span>' : `<span class="chip keep">距最新 ${behind} 週</span>`;
   if(sd){
     const ed = new Date(sd.getTime() + 6 * 86400000);
