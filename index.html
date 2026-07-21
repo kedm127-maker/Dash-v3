@@ -1022,7 +1022,7 @@ function renderChTable(){
     {key:"cpa", label:"CPA", f:v=>v > 0 ? fmtInt(v) : "—"}, {key:"roas", label:"ROAS", f:v=>v.toFixed(2)}
   ];
   if(hasRebuy) COLS.push({key:"rbr", label:P.cfg.kind === "casino" ? "複充率" : "回購率", f:pct1});
-  COLS.push({key:"verdict", label:"建議"});
+ // COLS.push({key:"verdict", label:"建議"});  // 隱藏「建議」欄，要恢復就把這行開頭的 // 拿掉
   const head = $("tblHead");
   head.innerHTML = "";
   for(const c of COLS){
@@ -1068,8 +1068,8 @@ function renderChTable(){
     if(c.key === "verdict") return "<td></td>";
     return `<td>${c.f(t[c.key])}</td>`;
   }).join("");
-  $("tblfoot2").textContent = "＊電銷：曝光＝撥打、點擊＝接通｜ROAS＜1 紅字＝" + k.rev + "低於花費" +
-    (hasRebuy ? `｜${P.cfg.kind === "casino" ? "複充率" : "回購率"}＝${P.cfg.kind === "casino" ? "複充" : "回購"}人數÷${k.ord}，＜20% 時加碼自動降為觀察` : "");
+  $("tblfoot2").textContent = "＊電銷：曝光＝撥打、點擊＝接通｜ROAS＜1 紅字＝" + k.rev + "低於花費"
+  /* + (hasRebuy ? `｜${P.cfg.kind === "casino" ? "複充率" : "回購率"}＝${P.cfg.kind === "casino" ? "複充" : "回購"}人數÷${k.ord}，＜20% 時加碼自動降為觀察` : "") */ ;
 }
 function renderFunnel(){
   const P = curP();
